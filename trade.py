@@ -20,4 +20,10 @@ api_url = f'https://sandbox.iexapis.com/stable/stock/{symbol}/quote?token={IEX_C
 #api_url = f'https://algorithmpython.iex.cloud/v1/data/CORE/{symbol}/quote?token={IEX_CLOUD_API_TOKEN}'
 #api_url = 'https://sandbox.iexapis.com/stable/stock/AAPL/quote?token=Tpk_059b97af715d417d9f49f50b51b1c448'
 data = requests.get(api_url).json()
-print(data)
+
+price = data['latestPrice']
+market_price = data['marketCap']
+
+my_columns = ['Ticker','Stock Price', 'Market Capitalization', 'Number of share to buy']
+final_data_frame = pd.DataFrame([[0,0,0,0]],columns = my_columns)
+print(final_data_frame)
