@@ -15,6 +15,7 @@ from secrets import IEX_CLOUD_API_TOKEN
 stocks = pd.read_csv('sp_500_stocks.csv')
 
 symbol = 'APPL'
-api_url = f'https://sandbox.iexapis.com/stable/stock/{symbol}/quote/?token={IEX_CLOUD_API_TOKEN}'
-data = requests.get(api_url)
-print(data.status_code)
+#api_url = f'https://sandbox.iexapis.com/stable/stock/{symbol}/quote?token={IEX_CLOUD_API_TOKEN}'
+api_url = f'https://algorithmpython.iex.cloud/v1/data/CORE/HISTORICAL_PRICES?last=1&token={IEX_CLOUD_API_TOKEN}'
+data = requests.get(api_url).json()
+print(data)
