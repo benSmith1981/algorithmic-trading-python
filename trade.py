@@ -177,6 +177,6 @@ column_formats = {
 }
 for column in column_formats.keys():
     writer.sheets['Recommended Trades'].set_column(f'{column}:{column}',18,column_formats[column][1])
-    writer.sheets['Recommended Trades'].write(f'{column}1',18,column_formats[column][1])
+    writer.sheets['Recommended Trades'].write(f'{column}1',column_formats[column][0],column_formats[column][1])
 
 writer.save()
