@@ -4,6 +4,7 @@ import requests #The requests library for HTTP requests in Python
 import xlsxwriter #The XlsxWriter libarary for 
 import math #The Python math module
 from scipy import stats #The SciPy stats module
+from scipy.stats import percentileofscore as score #The SciPy stats module
 
 stocks = pd.read_csv('sp_500_stocks.csv')
 from secrets import IEX_CLOUD_API_TOKEN
@@ -88,22 +89,23 @@ for symbol_string in symbol_strings:
     data = requests.get(batch_api_call_url).json()
     for symbol in symbol_string.split(','): #for every symbol in comma separated string, loop over the data to get the data from each to add to series
         if symbol in data:
-            hqm_dataframe = hqm_dataframe.append(
-                                pd.Series([
-                                            symbol,
-                                            data[symbol]['price'],
-                                            'Number of Shares to Buy',
-                                            data[symbol]['stats']['year1ChangePercent'],
-                                            'N/A',#One-Year Return Percentile',
-                                            data[symbol]['stats']['month6ChangePercent'],
-                                            'N/A',#'Six-Month Return Percentile',
-                                            data[symbol]['stats']['month3ChangePercent'],
-                                            'N/A',#'Three-Month Return Percentile',
-                                            data[symbol]['stats']['month1ChangePercent'],
-                                            'N/A',#'One-Month Return Percentile'
-                                        ], 
-                                        index = hqm_columns), 
-                                ignore_index = True)
+            if data[symbol]['stats']['year1ChangePercent'] != None:
+                hqm_dataframe = hqm_dataframe.append(
+                                    pd.Series([
+                                                symbol,
+                                                data[symbol]['price'],
+                                                'Number of Shares to Buy',
+                                                data[symbol]['stats']['year1ChangePercent']*10,
+                                                'N/A',#One-Year Return Percentile',
+                                                data[symbol]['stats']['month6ChangePercent']*10,
+                                                'N/A',#'Six-Month Return Percentile',
+                                                data[symbol]['stats']['month3ChangePercent']*10,
+                                                'N/A',#'Three-Month Return Percentile',
+                                                data[symbol]['stats']['month1ChangePercent']*10,
+                                                'N/A',#'One-Month Return Percentile'
+                                            ], 
+                                            index = hqm_columns), 
+                                    ignore_index = True)
 
 time_periods = [
                 'One-Year',
@@ -112,11 +114,106 @@ time_periods = [
                 'One-Month'
                 ]
 
+# print(hqm_dataframe[f'{time_period} Price Return'])
+# #print(hqm_dataframe.loc[row, f'{time_period} Price Return'])
+# print(f'{time_period} Return Percentile')
+print(stats.percentileofscore([1,2,3,4],3))
+print(f'{time_periods[3]} Return Percentile')
+#hqm_dataframe.loc[row, f'{time_period} Return Percentile'] = stats.percentileofscore(hqm_dataframe[f'{time_period} Price Return'])
+
 for row in hqm_dataframe.index: #look through rows of hqm dataframe
     for time_period in time_periods: #llop trhough time periods
+
         #panda loc method changes the value of each time period column
         #stats.percentileofscore takes two arguments, 1st entire column, 2nd entry from that column
-        print(hqm_dataframe.loc[row, f'{time_period} Price Return']/100)
 
-        hqm_dataframe.loc[row, f'{time_period} Return Percentile'] = stats.percentileofscore(hqm_dataframe[f'{time_period} Price Return'], hqm_dataframe.loc[row, f'{time_period} Price Return'])/100
-#print(hqm_dataframe)
+        #print(hqm_dataframe.loc[row, f'{time_period} Price Return'])
+        #print(f'{time_period} Return Percentile')
+        #print(stats.percentileofscore([1,2,3,4],3))
+        #print(stats.percentileofscore(hqm_dataframe[f'{time_period} Price Return'],3))
+        change_col = f'{time_period} Price Return'
+        percentile_col = f'{time_period} Return Percentile'
+        #hqm_dataframe.loc[row, percentile_col] = 100
+        #print(change_col)
+        #print(percentile_col)
+        if hqm_dataframe.loc[row, change_col] != None:
+            print( hqm_dataframe.loc[row, change_col])
+            #print(score([1,2,3,4,3], hqm_dataframe.loc[row, change_col]))
+            hqm_dataframe.loc[row, percentile_col] = score(hqm_dataframe[change_col], hqm_dataframe.loc[row, change_col]/100)
+
+        #percentileofscore or score (first arg is entire columm, second arg is entry from that column)
+        #hqm_dataframe.loc[row, percentile_col] = score(hqm_dataframe[change_col], hqm_dataframe.loc[row, change_col]/100)
+print(hqm_dataframe)
+
+
+
+
+writer = pd.ExcelWriter('Recommended_equalstrat_trades.xlsx', engine='xlsxwriter')
+hqm_dataframe.to_excel(writer, 'Recommended Trades', index=False)
+
+background_color = '#0a0a23'
+font_color = '#ffffff'
+
+string_format = writer.book.add_format(
+    {
+        'font_color': font_color, 
+        'bg_color': background_color, 
+        'border': 1
+    }
+)
+
+dollar_format = writer.book.add_format(
+    {
+        'num_format':'$0.00',
+        'font_color': font_color, 
+        'bg_color': background_color, 
+        'border': 1
+    }
+)
+
+integer_format = writer.book.add_format(
+    {
+        'num_format':'0',
+        'font_color': font_color, 
+        'bg_color': background_color, 
+        'border': 1
+    }
+)
+
+writer.sheets['Recommended Trades'].set_column('A:A', #This tells the method to apply the format to column B
+                     18, #This tells the method to apply a column width of 18 pixels
+                     string_format #This applies the format 'string_template' to the column
+                    )
+
+#use loop below through dictionary 
+# writer.sheets['Recommended Trades'].set_column('B:B', 18, string_format)          
+# writer.sheets['Recommended Trades'].set_column('C:C', 18, string_format)          
+# writer.sheets['Recommended Trades'].set_column('D:D', 18, string_format)          
+# writer.sheets['Recommended Trades'].set_column('B:B', 18, string_format)   
+# writer.sheets['Recommended Trades'].write('A1', 'Ticker', string_format)
+# writer.sheets['Recommended Trades'].write('B1', 'Stock Price', dollar_format)
+# writer.sheets['Recommended Trades'].write('C1', 'Market Capitalisation', dollar_format)
+# writer.sheets['Recommended Trades'].write('D1', 'Number of shares to buy', integer_format)
+
+
+column_formats = {
+    'A' : ['Ticker', string_format],
+    'B' : ['Stock Price', dollar_format],
+    'C' : ['Market Capitalisation', dollar_format],
+
+    'D' : ['One-Year Price Return', integer_format],
+    'E' : ['One-Year Return Percentile', integer_format],
+    'F' : ['Six-Month Price Return', integer_format],
+    'G' : ['Six-Month Return Percentile', integer_format],
+    'H' : ['Three-Month Price Return', integer_format],
+    'I' : ['Three-Month Return Percentile', integer_format],
+    'I' : ['One-Month Price Return', integer_format],
+    'I' : ['One-Month Return Percentile', integer_format]
+
+
+}
+for column in column_formats.keys():
+    writer.sheets['Recommended Trades'].set_column(f'{column}:{column}',18,column_formats[column][1])
+    writer.sheets['Recommended Trades'].write(f'{column}1',column_formats[column][0],column_formats[column][1])
+
+writer.save()
