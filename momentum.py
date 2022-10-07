@@ -141,7 +141,7 @@ for row in hqm_dataframe.index:
 
 
 hqm_dataframe.sort_values(by = 'HQM Score', ascending = False)
-hqm_dataframe = hqm_dataframe[:51]
+#hqm_dataframe = hqm_dataframe[:51]
 hqm_dataframe.reset_index(drop = True, inplace = True)
 
 
