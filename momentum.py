@@ -5,7 +5,7 @@ import xlsxwriter #The XlsxWriter libarary for
 import math #The Python math module
 from scipy import stats #The SciPy stats module
 from scipy.stats import percentileofscore as score #The SciPy stats module
-
+from statistics import mean
 stocks = pd.read_csv('sp_500_stocks.csv')
 from secrets import IEX_CLOUD_API_TOKEN
 
@@ -78,7 +78,8 @@ hqm_columns = [
     'Three-Month Price Return',
     'Three-Month Return Percentile',
     'One-Month Price Return',
-    'One-Month Return Percentile'
+    'One-Month Return Percentile',
+    'HQM Score'
 ]
 
 hqm_dataframe = pd.DataFrame(columns = hqm_columns)
@@ -92,17 +93,18 @@ for symbol_string in symbol_strings:
             if data[symbol]['stats']['year1ChangePercent'] != None:
                 hqm_dataframe = hqm_dataframe.append(
                                     pd.Series([
-                                                symbol,
+                                                symbol, 
                                                 data[symbol]['price'],
-                                                'Number of Shares to Buy',
-                                                data[symbol]['stats']['year1ChangePercent']*10,
+                                                'N/A',
+                                                data[symbol]['stats']['year1ChangePercent'],
                                                 'N/A',#One-Year Return Percentile',
-                                                data[symbol]['stats']['month6ChangePercent']*10,
+                                                data[symbol]['stats']['month6ChangePercent'],
                                                 'N/A',#'Six-Month Return Percentile',
-                                                data[symbol]['stats']['month3ChangePercent']*10,
+                                                data[symbol]['stats']['month3ChangePercent'],
                                                 'N/A',#'Three-Month Return Percentile',
-                                                data[symbol]['stats']['month1ChangePercent']*10,
+                                                data[symbol]['stats']['month1ChangePercent'],
                                                 'N/A',#'One-Month Return Percentile'
+                                                'N/A'
                                             ], 
                                             index = hqm_columns), 
                                     ignore_index = True)
@@ -123,30 +125,38 @@ print(f'{time_periods[3]} Return Percentile')
 
 for row in hqm_dataframe.index: #look through rows of hqm dataframe
     for time_period in time_periods: #llop trhough time periods
-
         #panda loc method changes the value of each time period column
         #stats.percentileofscore takes two arguments, 1st entire column, 2nd entry from that column
-
-        #print(hqm_dataframe.loc[row, f'{time_period} Price Return'])
-        #print(f'{time_period} Return Percentile')
-        #print(stats.percentileofscore([1,2,3,4],3))
-        #print(stats.percentileofscore(hqm_dataframe[f'{time_period} Price Return'],3))
         change_col = f'{time_period} Price Return'
         percentile_col = f'{time_period} Return Percentile'
-        #hqm_dataframe.loc[row, percentile_col] = 100
-        #print(change_col)
-        #print(percentile_col)
         if hqm_dataframe.loc[row, change_col] != None:
-            print( hqm_dataframe.loc[row, change_col])
-            #print(score([1,2,3,4,3], hqm_dataframe.loc[row, change_col]))
+            #print( hqm_dataframe.loc[row, change_col])
             hqm_dataframe.loc[row, percentile_col] = score(hqm_dataframe[change_col], hqm_dataframe.loc[row, change_col]/100)
 
-        #percentileofscore or score (first arg is entire columm, second arg is entry from that column)
-        #hqm_dataframe.loc[row, percentile_col] = score(hqm_dataframe[change_col], hqm_dataframe.loc[row, change_col]/100)
+for row in hqm_dataframe.index:
+    momentum_percentiles = []
+    for time_period in time_periods:
+        momentum_percentiles.append(hqm_dataframe.loc[row, f'{time_period} Return Percentile'])
+    hqm_dataframe.loc[row, 'HQM Score'] = mean(momentum_percentiles)
+
+
+hqm_dataframe.sort_values(by = 'HQM Score', ascending = False)
+hqm_dataframe = hqm_dataframe[:51]
+hqm_dataframe.reset_index(drop = True, inplace = True)
+
+
+portfolio_input()
+print(final_dataframe.index)
+
+position_size = float(portfolio_size) / len(hqm_dataframe.index)
+
+for i in hqm_dataframe.index:
+    #if final_dataframe['Price'][i] != None:
+    hqm_dataframe.loc[i, 'Number of Shares to Buy'] = math.floor(position_size / hqm_dataframe.loc[i,'Price'])
 print(hqm_dataframe)
 
 
-
+#Output to excel
 
 writer = pd.ExcelWriter('Recommended_equalstrat_trades.xlsx', engine='xlsxwriter')
 hqm_dataframe.to_excel(writer, 'Recommended Trades', index=False)
