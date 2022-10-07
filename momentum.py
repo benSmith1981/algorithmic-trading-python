@@ -210,15 +210,17 @@ column_formats = {
     'A' : ['Ticker', string_format],
     'B' : ['Stock Price', dollar_format],
     'C' : ['Market Capitalisation', dollar_format],
+    'D' : ['Number of Shares to Buy', integer_format],
 
-    'D' : ['One-Year Price Return', integer_format],
-    'E' : ['One-Year Return Percentile', integer_format],
-    'F' : ['Six-Month Price Return', integer_format],
-    'G' : ['Six-Month Return Percentile', integer_format],
-    'H' : ['Three-Month Price Return', integer_format],
-    'I' : ['Three-Month Return Percentile', integer_format],
-    'I' : ['One-Month Price Return', integer_format],
-    'I' : ['One-Month Return Percentile', integer_format]
+    'E' : ['One-Year Price Return', integer_format],
+    'F' : ['One-Year Return Percentile', integer_format],
+    'G' : ['Six-Month Price Return', integer_format],
+    'H' : ['Six-Month Return Percentile', integer_format],
+    'I' : ['Three-Month Price Return', integer_format],
+    'J' : ['Three-Month Return Percentile', integer_format],
+    'K' : ['One-Month Price Return', integer_format],
+    'L' : ['One-Month Return Percentile', integer_format],
+    'M' : ['HQM Score', integer_format]
 
 
 }
