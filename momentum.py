@@ -190,6 +190,14 @@ integer_format = writer.book.add_format(
     }
 )
 
+percent_template = writer.book.add_format(
+        {
+            'num_format':'0.0%',
+            'font_color': font_color,
+            'bg_color': background_color,
+            'border': 1
+        }
+    )
 writer.sheets['Recommended Trades'].set_column('A:A', #This tells the method to apply the format to column B
                      18, #This tells the method to apply a column width of 18 pixels
                      string_format #This applies the format 'string_template' to the column
@@ -209,18 +217,18 @@ writer.sheets['Recommended Trades'].set_column('A:A', #This tells the method to 
 column_formats = {
     'A' : ['Ticker', string_format],
     'B' : ['Stock Price', dollar_format],
-    'C' : ['Market Capitalisation', dollar_format],
-    'D' : ['Number of Shares to Buy', integer_format],
 
-    'E' : ['One-Year Price Return', integer_format],
-    'F' : ['One-Year Return Percentile', integer_format],
-    'G' : ['Six-Month Price Return', integer_format],
-    'H' : ['Six-Month Return Percentile', integer_format],
-    'I' : ['Three-Month Price Return', integer_format],
-    'J' : ['Three-Month Return Percentile', integer_format],
-    'K' : ['One-Month Price Return', integer_format],
-    'L' : ['One-Month Return Percentile', integer_format],
-    'M' : ['HQM Score', integer_format]
+    'C' : ['Number of Shares to Buy', integer_format],
+
+    'D' : ['One-Year Price Return', percent_template],
+    'E' : ['One-Year Return Percentile', percent_template],
+    'F' : ['Six-Month Price Return', percent_template],
+    'G' : ['Six-Month Return Percentile', percent_template],
+    'H' : ['Three-Month Price Return', percent_template],
+    'I' : ['Three-Month Return Percentile', percent_template],
+    'J' : ['One-Month Price Return', percent_template],
+    'K' : ['One-Month Return Percentile', percent_template],
+    'L' : ['HQM Score', integer_format]
 
 
 }
